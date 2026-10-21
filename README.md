@@ -19,7 +19,7 @@ npm run dev                  # http://localhost:3000
 Checks before pushing:
 
 ```bash
-npm run build && npm run typecheck
+npm test && npm run build && npm run typecheck
 ```
 
 ## Docs

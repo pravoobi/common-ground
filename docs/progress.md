@@ -5,3 +5,4 @@
 - **Blocked:** Qloo API key requested Oct 22, waiting. Start date not decided.
 - **Next:** Vercel + Upstash accounts; on start day (key permitting) run spike 1. Repo: github.com/pravoobi/common-ground (public, MIT).
 - **Also shipped:** Next.js scaffold with placeholder landing page; deployed to Vercel at https://common-ground-phi-bice.vercel.app/ (auto-deploys from `main`). Private notes moved to `CLAUDE.local.md` (gitignored).
+- **Also shipped:** `lib/score.ts` (maximin + mean tie-break, v0 mean kept for evidence; missing scores never filled in, incomplete candidates rank last), `lib/constraints.ts` (veg / price / distance; unknown data kept but flagged unverified; distance quantised for cache keys), 15 Vitest tests passing. Timing/opening-hours constraint deferred until we know what Qloo returns.
