@@ -2,5 +2,5 @@
 
 ## 2026-10-22
 - **Shipped:** `docs/plan.md` (architecture + build plan), `SPIKES.md` template, `docs/evidence.md`, git init, `.env.example`, `.gitignore`.
-- **Blocked:** Qloo API key not yet requested/received. Start date not decided.
-- **Next:** request key; create public repo + MIT licence; on start day run spike 1.
+- **Blocked:** Qloo API key requested Oct 22, waiting. Start date not decided.
+- **Next:** Vercel + Upstash accounts; on start day (key permitting) run spike 1. Repo: github.com/pravoobi/common-ground (public, MIT).

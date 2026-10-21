@@ -127,8 +127,9 @@ Days are relative to the start date. Before then, only zero-cost prep.
 
 ### Before start (any spare hour, Oct 22–26)
 - [x] Plan, `SPIKES.md` template, progress/evidence files, git init, `.env.example`, `.gitignore`
-- [ ] Request Qloo API key (Google Form on hackathon page) — **do today**
-- [ ] Create empty public GitHub repo + MIT licence; create Vercel and Upstash accounts
+- [x] Qloo API key requested Oct 22 (may take a few days)
+- [x] Public GitHub repo + MIT licence (github.com/pravoobi/common-ground)
+- [ ] Create Vercel and Upstash accounts
 
 ### Day 1 morning — Spikes (done when `SPIKES.md` sections 1–7 are filled and demo city chosen)
 - Clone `qloo-hackathon-kit` into a separate folder; read docs.qloo.com
