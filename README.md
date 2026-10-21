@@ -2,7 +2,9 @@
 
 > A generic AI guesses what your group might like; Common Ground knows what each of you loves and finds the plan where those tastes overlap.
 
-Built for the Qloo Agentic Hackathon. **Work in progress**: the live demo, sample groups and full write-up are coming.
+**Live demo:** https://common-ground-phi-bice.vercel.app/
+
+Built for the Qloo Agentic Hackathon. **Work in progress**: sample groups, the live planner and the full write-up are coming.
 
 ## Run locally
 
