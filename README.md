@@ -20,6 +20,7 @@ Checks before pushing:
 
 ```bash
 npm test && npm run build && npm run typecheck
+npm run test:live   # optional: real Qloo calls (~6), needs .env.local
 ```
 
 ## Docs
