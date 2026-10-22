@@ -18,3 +18,5 @@
 - **Next:** without-Qloo baseline per sample (same model, no tools) + side-by-side view; README.
 - **Also shipped (later):** without-Qloo baseline (`lib/agent/baseline.ts`, `npm run baseline -- <sample> [--rescore]`): same model, no tools; its pick is found in Qloo (city + branch-aware) and scored per friend over the same pool as the Qloo pick; hard limits checked. Stored in Redis, shown on `/g/[id]` as "Without Qloo vs with Qloo" with the measurement caveat. Least-happy friend: 0 vs 71 / 0 vs 81 / 0 vs 58.
 - **Next:** README (with the caveat), OG image, GIF; optional blind check with real people.
+- **Also shipped (later):** README rewritten per CLAUDE.md §7 (try-it box, problem, step table, mermaid architecture, Qloo feature map with code links, agent tools, fair-overlap example, evidence with the measurement caveat, cost, testing, run locally, security, limitations, business model, how it was built). OG image (`app/opengraph-image.tsx`, fictional tastes, no Qloo data) + `metadataBase`.
+- **Next:** README GIF from the live site on a phone; GitHub About (website + licence); blind check with real people if possible; Devpost text.

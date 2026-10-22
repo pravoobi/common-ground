@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://common-ground-phi-bice.vercel.app"),
   title: "Common Ground",
   description:
     "Plans for groups, grounded in what each friend actually loves. Built on the Qloo taste graph.",
