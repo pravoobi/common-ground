@@ -1,20 +1,9 @@
 // Opt-in smoke test against the real Qloo API: `npm run test:live`. Spends ~5 calls.
 // Asserts shapes only; prints nothing from the responses beyond counts.
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createQlooClient } from "../../lib/qloo/client";
 import { resolveFromResults } from "../../lib/qloo/resolve";
-
-// Runs only via the npm script, so plain `npm test` never spends calls.
-const live = process.env.npm_lifecycle_event === "test:live";
-const env = live
-  ? Object.fromEntries(
-      readFileSync(".env.local", "utf8")
-        .split(/\r?\n/)
-        .filter((l) => /^[A-Z_]+=/.test(l))
-        .map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1).trim()]),
-    )
-  : {};
+import { env, live } from "./env";
 
 describe.skipIf(!live)("Qloo live", () => {
   it("resolves, recommends and scores a pool end to end", async () => {
