@@ -1,3 +1,4 @@
+import type { Comparison } from "./agent/compare";
 import type { RunRecord } from "./agent/record";
 import { getRedis } from "./cache";
 
@@ -17,4 +18,16 @@ export async function loadReplay(sampleId: string): Promise<RunRecord | null> {
   if (!redis) return null;
   const record = await redis.get<RunRecord>(key(sampleId));
   return record ? { ...record, mode: "replay" } : null;
+}
+
+const comparisonKey = (sampleId: string) => `replay:comparison:${sampleId}`;
+
+export async function saveComparison(comparison: Comparison): Promise<void> {
+  const redis = getRedis();
+  if (!redis) throw new Error("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set to save comparisons");
+  await redis.set(comparisonKey(comparison.sampleId), comparison);
+}
+
+export async function loadComparison(sampleId: string): Promise<Comparison | null> {
+  return (await getRedis()?.get<Comparison>(comparisonKey(sampleId))) ?? null;
 }

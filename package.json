@@ -12,7 +12,8 @@
     "test:live": "vitest run tests/live",
     "plan": "tsx --env-file=.env.local scripts/run-plan.ts",
     "probe": "tsx --env-file=.env.local scripts/probe-group.ts",
-    "record": "tsx --env-file=.env.local scripts/record.ts"
+    "record": "tsx --env-file=.env.local scripts/record.ts",
+    "baseline": "tsx --env-file=.env.local scripts/baseline.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",

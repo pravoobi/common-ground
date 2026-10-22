@@ -131,14 +131,14 @@ function people(state: RunState): Person[] {
   return state.group.people.map((p) => ({ id: p.id, label: p.label, constraints: p.constraints }));
 }
 
-function signalsFor(state: RunState, personIds: string[]) {
+export function signalsFor(state: RunState, personIds: string[]) {
   const resolved = state.tastes.filter((t) => personIds.includes(t.personId) && t.status === "resolved" && t.signal);
   const ids = (kind: Signal["kind"]) => [...new Set(resolved.filter((t) => t.signal!.kind === kind).map((t) => t.signal!.id))];
   return { entities: ids("entity"), tags: ids("tag") };
 }
 
 /** Filters every place query shares (SPIKES.md §4: without them, junk like apartment blocks appears). */
-function placeBase(state: RunState): InsightsQuery {
+export function placeBase(state: RunState): InsightsQuery {
   const caps = state.group.people.map((p) => p.constraints.maxPriceLevel).filter((x): x is PriceLevel => x !== undefined);
   return {
     type: "urn:entity:place",

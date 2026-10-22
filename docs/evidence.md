@@ -12,6 +12,24 @@ Averaging chases Sameer's 100 and gives Tanvi her weaker match; fairness lifts t
 
 **What it took to see any disagreement at all:** with the candidate pool from one combined Qloo call, averaging and fairness agreed on all 3 sample groups (probe, 2026-10-22). The combined call is dominated by the majority's tastes, so places only the outlier loves never enter the pool. Fix: add each person's own top 3 places to the pool. After that, the birthday group (three bar-lovers + Amma) split as above. College friends and the couple still agree, which is the honest result when tastes broadly overlap.
 
+## Without Qloo vs with Qloo
+2026-10-22. Same model (`claude-sonnet-5-5`), same group, same writing rules, no tools (`npm run baseline`). Both picks scored per friend with Qloo over the same pool (percentile, 100 = best match in the pool).
+
+| Sample | Without Qloo | Least happy friend | With Qloo | Least happy friend |
+|---|---|---|---|---|
+| College friends (4) | Meghana Foods, Indiranagar | 0 | The 13th Floor | 71 |
+| Couple (2) | Matsuri | 0 (Nisha 100, Arjun 0) | Don't Tell Mama | 81 |
+| Birthday with Amma (4) | Windmills Craftworks, Whitefield | 0 | SkyDeck by Sherlock's | 58 |
+
+Facts that don't depend on a Qloo score:
+- Windmills Craftworks is price level 4; Amma's cap is 3. The baseline broke a stated limit.
+- The baseline's reasons include details nothing backs up (a "live jazz vibe", "soft and melodic" music for Amma, a "Toit-style taproom after dinner"). Every Qloo-plan reason cites evidence ids checked on the server.
+- The baseline said Matsuri is in Indiranagar; the only Matsuri Qloo has is on Lavelle Road.
+
+**Caveat (say it wherever the numbers appear):** the yardstick is Qloo's own taste model, and the pool is Qloo's recommendations, so a pick from outside the pool tends to rank low. This measures distance from each friend's taste profile, not whether real people would enjoy the night more. A blind check with real people is the stronger test and is still to do.
+
+**Gotcha found:** the first matcher took the Jayanagar branch of Meghana Foods although the model said Indiranagar. Matching now prefers the branch in the stated area (least-happy score for that pick went 0 → 0, mean 2 → 6).
+
 ## Failure → recovery
 - 2026-10-22, spike 2: `/search` always returns a top result. "Sid Sriram's new song" resolved to "Sidney Bechet and His New Orleans Feetwarmers"; "filter coffee" as a place resolved to a café in Pisa. Fix planned: name-match guard → unresolved → one clarifying question; food terms go through `/v2/tags`.
 - 2026-10-22, first agent run: the agent "helped" by searching "Toit Bengaluru"; Qloo returned "Toit" but the name guard needed every query word in the name, so Toit came back unresolved. It also pre-cleaned "Anirudh" → "Anirudh Ravichander" and "Sid Sriram's new song" → "Sid Sriram", hiding the ambiguity. Fix: a result may match the taste as typed or the query; the first lookup must use the taste as typed (enforced in code), rewrites only on retry, every attempt kept.

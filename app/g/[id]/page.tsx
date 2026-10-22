@@ -4,8 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { GroupSummary } from "@/components/GroupSummary";
+import { ComparisonView } from "@/components/ComparisonView";
 import { PlanView } from "@/components/PlanView";
-import { loadReplay } from "@/lib/replays";
+import { loadComparison, loadReplay } from "@/lib/replays";
 import { getSample, SAMPLES } from "@/lib/samples";
 
 // The recorded samples are prerendered; any other id is a 404 (see notFound below).
@@ -26,10 +27,22 @@ async function getReplay(id: string) {
   return loadReplay(id);
 }
 
+async function getComparison(id: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(`comparison-${id}`);
+  return loadComparison(id);
+}
+
 async function Replay({ id }: { id: string }) {
-  const record = await getReplay(id);
+  const [record, comparison] = await Promise.all([getReplay(id), getComparison(id)]);
   if (!record) return <p className="text-sm opacity-70">This sample hasn&apos;t been recorded yet.</p>;
-  return <PlanView record={record} />;
+  return (
+    <div className="flex flex-col gap-10">
+      <PlanView record={record} />
+      {comparison && <ComparisonView comparison={comparison} record={record} />}
+    </div>
+  );
 }
 
 export default async function SamplePage({ params }: PageProps<"/g/[id]">) {
