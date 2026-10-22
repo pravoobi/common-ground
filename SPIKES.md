@@ -73,8 +73,9 @@ Music + film + TV signals alone produce Bengaluru restaurant rankings that diffe
 
 ## 7. Model choice
 - Pinned: `claude-opus-5-5`, effort `medium`, adaptive thinking, `fallbacks: "default"`
-- Measured latency per plan: _pending (agent not built)_
-- Tokens per plan: _pending_
+- 2026-10-22, college-friends sample (4 people, 12 tastes): **29–38 s per plan**, 6 model turns, **~31k input / ~1.5k output tokens** (≈ $0.15 at $4/$20 per MTok). Tool time ≈ 9 s; the rest is the model.
+- 18 Qloo calls per cold plan (12 lookups + 1 retry + 1 pool + 4 scoring); half came from cache on a rerun.
+- Gotcha: 12 parallel `/search` calls take 1.5–3.8 s each (254 ms one at a time), so Qloo seems to queue concurrent requests.
 
 ## Budget
 ≈ 1 pool + P scoring + ~3P search/tag calls per plan, mostly cache hits after the first run. 3 people ≈ 13 calls cold. 50k/month leaves room for ~3,000 cold live plans; daily cap set well below.

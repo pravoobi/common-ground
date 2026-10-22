@@ -39,8 +39,12 @@ export function nameMatches(input: string, name: string): boolean {
  * Guards against Qloo search always returning something (SPIKES.md §2):
  * "Sid Sriram's new song" → "Sidney Bechet…" must come back unresolved.
  */
-export function resolveFromResults(input: string, results: Entity[]): Resolution {
-  const matching = results.filter((e) => nameMatches(input, e.name));
+export function resolveFromResults(
+  input: string,
+  results: Entity[],
+  matches: (name: string) => boolean = (name) => nameMatches(input, name),
+): Resolution {
+  const matching = results.filter((e) => matches(e.name));
   if (!matching.length) return { status: "unresolved", input, closest: results[0]?.name };
 
   const [first] = matching;

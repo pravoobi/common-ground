@@ -1,0 +1,31 @@
+{
+  "title": "College friends, Bengaluru, Saturday night",
+  "city": "Bengaluru",
+  "occasion": "Saturday dinner",
+  "people": [
+    {
+      "id": "asha",
+      "label": "Asha (fictional)",
+      "tastes": ["AR Rahman", "Kumbalangi Nights", "filter coffee"],
+      "constraints": { "veg": true }
+    },
+    {
+      "id": "ravi",
+      "label": "Ravi (fictional)",
+      "tastes": ["Diljit Dosanjh", "RRR", "biryani"],
+      "constraints": { "maxPriceLevel": 3 }
+    },
+    {
+      "id": "meera",
+      "label": "Meera (fictional)",
+      "tastes": ["Prateek Kuhad", "Panchayat", "Toit"],
+      "constraints": {}
+    },
+    {
+      "id": "karthik",
+      "label": "Karthik (fictional)",
+      "tastes": ["Anirudh", "Kantara", "Sid Sriram's new song"],
+      "constraints": {}
+    }
+  ]
+}
