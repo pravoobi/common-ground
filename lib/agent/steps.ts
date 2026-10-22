@@ -20,9 +20,19 @@ const ENTITY_TYPE: Record<Exclude<TasteKind, "food_or_drink">, string> = {
 };
 
 const RESTAURANT_TAG = "urn:tag:category:place:restaurant";
-const VEG_TAGS = new Set(["urn:tag:dietary_option:qloo:vegetarian", "urn:tag:genre:place:restaurant:vegetarian"]);
+const VEG_TAGS = new Set([
+  "urn:tag:dietary_option:qloo:vegetarian",
+  "urn:tag:genre:place:restaurant:vegetarian",
+  "urn:tag:category:place:vegetarian_restaurant",
+]);
+const NON_VEG_TAGS = new Set(["urn:tag:category:place:non_vegetarian_restaurant", "urn:tag:genre:place:restaurant:non_vegetarian"]);
+/** Chains and takeaways aren't a group outing; Qloo tags them clearly (SPIKES.md §4). */
+const FAST_FOOD = /^urn:tag:(genre:place:restaurant:(fast_food|pizza_takeout|pizza_delivery|takeout|fried_chicken_takeaway)|category:place:(fast_food_restaurant|takeout_restaurant|pizza_delivery|pizza_takeout|food_court))$/;
 const DEFAULT_POOL_SIZE = 15;
-const MAX_POOL_SIZE = 20;
+/** Fetched before fast food is dropped, so the pool stays near DEFAULT_POOL_SIZE. */
+const FETCH_SIZE = 25;
+/** Each person's own favourites added to the pool, so a minority taste gets a say (SPIKES.md §3). */
+const PER_PERSON_PICKS = 3;
 
 export interface Signal {
   kind: "entity" | "tag";
@@ -78,6 +88,10 @@ export interface RunState {
   excluded: { candidate: Candidate; issues: ConstraintIssue[] }[];
   unverified: ConstraintIssue[];
   evidence: Record<string, Evidence[]>;
+  /** Chains and takeaways Qloo returned that were left out of the pool. */
+  droppedFastFood: string[];
+  /** candidateId → "group" and/or the people whose own top places included it. */
+  poolSources: Record<string, string[]>;
   onStep?: (e: StepEvent) => void;
 }
 
@@ -96,6 +110,8 @@ export function createRunState(group: GroupInput, qloo: QlooClient, onStep?: (e:
     excluded: [],
     unverified: [],
     evidence: {},
+    droppedFastFood: [],
+    poolSources: {},
     onStep,
   };
 }
@@ -222,23 +238,63 @@ export function toCandidate(e: InsightEntity): Candidate {
     id: e.entity_id,
     name: e.name,
     priceLevel: price && price >= 1 && price <= 4 ? (price as PriceLevel) : undefined,
-    // A missing veg tag means "not known", never "not veg".
-    vegFriendly: tagIds.some((id) => VEG_TAGS.has(id)) ? true : undefined,
+    // Only an explicit tag decides; no veg tag means "not known", never "not veg".
+    vegFriendly: tagIds.some((id) => VEG_TAGS.has(id)) ? true : tagIds.some((id) => NON_VEG_TAGS.has(id)) ? false : undefined,
     tags: tagIds,
   };
 }
 
-export async function findCandidates(state: RunState, input: { take?: number }) {
+export const isFastFood = (e: InsightEntity) => (e.tags ?? []).some((t) => FAST_FOOD.test(t.id));
+
+export async function findCandidates(state: RunState) {
   const { entities, tags } = signalsFor(state, state.group.people.map((p) => p.id));
   if (!entities.length && !tags.length) throw new ToolInputError("No resolved tastes yet. Call resolve_tastes first.");
   state.onStep?.({ step: "overlap", status: "start" });
-  const take = Math.min(Math.max(input.take ?? DEFAULT_POOL_SIZE, 5), MAX_POOL_SIZE);
-  const results = await state.qloo.insights({ ...placeBase(state), signalEntities: entities, signalTags: tags, take });
-  state.pool = new Map(results.map((e) => [e.entity_id, e]));
-  state.candidates = results.map(toCandidate);
+  const base = placeBase(state);
+  // The combined call favours the majority; each person's own top places keep an outlier's favourites in play.
+  const [combined, ...own] = await Promise.all([
+    state.qloo.insights({ ...base, signalEntities: entities, signalTags: tags, take: FETCH_SIZE }),
+    ...state.group.people.map(async (p) => {
+      const s = signalsFor(state, [p.id]);
+      if (!s.entities.length && !s.tags.length) return [] as InsightEntity[];
+      return state.qloo
+        .insights({ ...base, signalEntities: s.entities, signalTags: s.tags, take: 10 })
+        .catch(() => [] as InsightEntity[]);
+    }),
+  ]);
+
+  const dropped = new Set<string>();
+  const pool = new Map<string, InsightEntity>();
+  const sources: Record<string, string[]> = {};
+  const add = (e: InsightEntity, source: string) => {
+    if (isFastFood(e)) return void dropped.add(e.name);
+    if (!pool.has(e.entity_id)) pool.set(e.entity_id, e);
+    (sources[e.entity_id] ??= []).push(source);
+  };
+  for (const e of combined) if (pool.size < DEFAULT_POOL_SIZE || pool.has(e.entity_id)) add(e, "group");
+  state.group.people.forEach((p, i) => {
+    let added = 0;
+    for (const e of own[i]) {
+      if (added >= PER_PERSON_PICKS) break;
+      if (isFastFood(e)) continue;
+      if (!pool.has(e.entity_id)) added++;
+      add(e, p.id);
+    }
+  });
+
+  state.droppedFastFood = [...dropped];
+  state.pool = pool;
+  state.poolSources = sources;
+  state.candidates = [...pool.values()].map(toCandidate);
   return {
-    count: results.length,
-    candidates: state.candidates.map((c) => ({ id: c.id, name: c.name, price_level: c.priceLevel ?? null })),
+    count: state.candidates.length,
+    dropped_as_fast_food: state.droppedFastFood,
+    candidates: state.candidates.map((c) => ({
+      id: c.id,
+      name: c.name,
+      price_level: c.priceLevel ?? null,
+      suggested_by: sources[c.id],
+    })),
   };
 }
 

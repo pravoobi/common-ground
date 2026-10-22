@@ -55,10 +55,10 @@ export function createTools(state: RunState, log: ToolCallLog[]) {
       name: "find_candidates",
       description:
         "Get candidate restaurants in the group's city from Qloo, using every resolved taste of every person as signals. " +
-        "Price caps are applied. Call after tastes are resolved.",
+        "Price caps are applied and fast-food chains and takeaways are left out. Call after tastes are resolved.",
       strict: true,
       inputSchema: z.object({}),
-      run: timed("find_candidates", () => findCandidates(state, {})),
+      run: timed("find_candidates", () => findCandidates(state)),
     }),
     betaZodTool({
       name: "rank_for_group",

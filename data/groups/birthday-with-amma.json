@@ -1,0 +1,31 @@
+{
+  "title": "Flatmates taking Amma out for her birthday",
+  "city": "Bengaluru",
+  "occasion": "Amma's birthday dinner",
+  "people": [
+    {
+      "id": "kabir",
+      "label": "Kabir (fictional)",
+      "tastes": ["Arctic Monkeys", "Peaky Blinders", "craft beer"],
+      "constraints": {}
+    },
+    {
+      "id": "tanvi",
+      "label": "Tanvi (fictional)",
+      "tastes": ["The Weeknd", "Breaking Bad", "cocktails"],
+      "constraints": {}
+    },
+    {
+      "id": "sameer",
+      "label": "Sameer (fictional)",
+      "tastes": ["Linkin Park", "Mirzapur", "chicken wings"],
+      "constraints": {}
+    },
+    {
+      "id": "amma",
+      "label": "Amma (fictional)",
+      "tastes": ["M. S. Subbulakshmi", "Shankarabharanam", "filter coffee"],
+      "constraints": { "veg": true, "maxPriceLevel": 3 }
+    }
+  ]
+}

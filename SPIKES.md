@@ -72,7 +72,8 @@ Music + film + TV signals alone produce Bengaluru restaurant rankings that diffe
 - Reasons = "because of <their input X>" (explainability) + place facts (tags/properties). The model writes the sentence; it may only cite these.
 
 ## 7. Model choice
-- Pinned: `claude-opus-5-5`, effort `medium`, adaptive thinking, `fallbacks: "default"`
+- Pinned: **`claude-sonnet-5-5`** (switched from `claude-opus-5-5` on 2026-10-22), effort `medium` set explicitly (Sonnet 5.5 defaults to `high`), adaptive thinking, `fallbacks: "default"`.
+- 2026-10-22, Sonnet 5.5 via `/new` (3 people, 9 tastes): **19.8 s**, 5 turns, 23.9k in / 0.9k out tokens (≈ $0.06 at $2/$10 per MTok). Reasons stayed grounded; it picked the same place as the two Opus runs on the 4-person version of the group.
 - 2026-10-22, college-friends sample (4 people, 12 tastes): **29–38 s per plan**, 6 model turns, **~31k input / ~1.5k output tokens** (≈ $0.15 at $4/$20 per MTok). Tool time ≈ 9 s; the rest is the model.
 - 18 Qloo calls per cold plan (12 lookups + 1 retry + 1 pool + 4 scoring); half came from cache on a rerun.
 - Gotcha: 12 parallel `/search` calls take 1.5–3.8 s each (254 ms one at a time), so Qloo seems to queue concurrent requests.

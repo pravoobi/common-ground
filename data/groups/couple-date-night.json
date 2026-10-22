@@ -1,0 +1,19 @@
+{
+  "title": "Couple with opposite tastes, Friday date night",
+  "city": "Bengaluru",
+  "occasion": "Friday date night",
+  "people": [
+    {
+      "id": "nisha",
+      "label": "Nisha (fictional)",
+      "tastes": ["Taylor Swift", "Friends", "sushi"],
+      "constraints": {}
+    },
+    {
+      "id": "arjun",
+      "label": "Arjun (fictional)",
+      "tastes": ["Ilaiyaraaja", "Super Deluxe", "masala dosa"],
+      "constraints": { "veg": true }
+    }
+  ]
+}

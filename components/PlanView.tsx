@@ -142,6 +142,16 @@ function XRay({ record, name }: { record: RunRecord; name: (id: string) => strin
         </table>
       </div>
       <p className="mt-1 text-xs opacity-60">Bold = least happy person for that place. The top row is the pick.</p>
+      {(record.excluded.length > 0 || record.droppedFastFood?.length > 0) && (
+        <ul className="mt-2 text-xs opacity-70">
+          {record.excluded.map((x) => (
+            <li key={x.name}>
+              Left out {x.name}: {x.issues.map((i) => `${name(i.personId)}: ${i.reason}`).join("; ")}
+            </li>
+          ))}
+          {record.droppedFastFood?.length > 0 && <li>Left out as fast food or takeaway: {record.droppedFastFood.join(", ")}</li>}
+        </ul>
+      )}
 
       <h4 className="mt-4 text-sm font-medium">3. Evidence each reason cites</h4>
       <ul className="mt-1 text-sm">

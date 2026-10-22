@@ -8,7 +8,7 @@ import { assemblePlan, PlanOutput, placeView, type RunRecord } from "./record";
 import { createRunState, type StepEvent } from "./steps";
 import { createTools, type ToolCallLog } from "./tools";
 
-export const DEFAULT_MODEL = "claude-opus-5-5";
+export const DEFAULT_MODEL = "claude-sonnet-5-5";
 
 const SYSTEM = `You plan a group outing for friends using Qloo's taste graph. You never invent scores, places or reasons.
 
@@ -94,6 +94,7 @@ export async function runAgent(group: GroupInput, options: RunOptions = {}): Pro
     ranking: state.ranking.slice(0, 5).map((r) => placeView(state, r)),
     excluded: state.excluded.map((x) => ({ name: x.candidate.name, issues: x.issues })),
     unverified: state.unverified,
+    droppedFastFood: state.droppedFastFood,
     qlooCalls: qloo.trace,
     toolCalls,
     usage,

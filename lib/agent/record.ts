@@ -67,6 +67,8 @@ export interface RunRecord {
   };
   ranking: PlaceView[];
   excluded: { name: string; issues: ConstraintIssue[] }[];
+  /** Fast-food chains and takeaways Qloo returned, left out of the pool. */
+  droppedFastFood: string[];
   unverified: ConstraintIssue[];
   qlooCalls: TraceEntry[];
   toolCalls: { name: string; ms: number; error?: string }[];

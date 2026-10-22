@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { assemblePlan } from "../lib/agent/record";
-import { chooseOption, createRunState, explainPick, findCandidates, rankGroup, resolveTastes } from "../lib/agent/steps";
+import { chooseOption, createRunState, explainPick, findCandidates, rankGroup, resolveTastes, toCandidate } from "../lib/agent/steps";
 import type { GroupInput } from "../lib/group";
 import type { InsightsQuery, QlooClient } from "../lib/qloo/client";
 import type { Entity, InsightEntity } from "../lib/qloo/schemas";
@@ -161,7 +161,7 @@ describe("findCandidates and rankGroup", () => {
     const { state, insights } = await resolvedState();
     chooseOption(state, { person_id: "ravi", taste: "Singer B", entity_id: "singer-b-full" });
 
-    await findCandidates(state, {});
+    await findCandidates(state);
     expect(insights.mock.calls[0][0]).toMatchObject({
       signalEntities: ["film-a", "singer-b-full", "show-c"],
       signalTags: [coffeeTag.id],
@@ -185,10 +185,46 @@ describe("findCandidates and rankGroup", () => {
       { person_id: "asha", taste: "Film A", query: "Film A", kind: "movie" },
       { person_id: "meera", taste: "Nonsense input", query: "Nonsense input", kind: "movie" },
     ]);
-    await findCandidates(state, {});
+    await findCandidates(state);
     const out = await rankGroup(state);
     expect(out.people_scored).toEqual(["asha"]);
     expect(out.people_without_tastes).toEqual(["ravi", "meera"]);
+  });
+});
+
+describe("candidate pool quality", () => {
+  it("drops fast-food chains and reports them", async () => {
+    const { client } = fakeQloo();
+    const chain = place("chain", 2, [{ id: "urn:tag:genre:place:restaurant:fast_food", name: "Fast Food", type: undefined }]);
+    client.insights = vi.fn(async () => [chain, ...pool]);
+    const state = createRunState(group, client);
+    await resolveTastes(state, [{ person_id: "asha", taste: "Film A", query: "Film A", kind: "movie" }]);
+    const out = await findCandidates(state);
+    expect(out.dropped_as_fast_food).toEqual(["Place chain"]);
+    expect(state.pool.has("chain")).toBe(false);
+  });
+
+  it("adds each person's own favourites so a minority taste gets a say", async () => {
+    const { client } = fakeQloo();
+    const favourite = place("meera-fav", 2, [vegTag]);
+    client.insights = vi.fn(async (q: InsightsQuery) =>
+      q.signalEntities?.length === 1 && q.signalEntities[0] === "show-c" ? [favourite] : pool,
+    );
+    const state = createRunState(group, client);
+    await resolveTastes(state, [
+      { person_id: "asha", taste: "Film A", query: "Film A", kind: "movie" },
+      { person_id: "meera", taste: "Show C", query: "Show C", kind: "tv_show" },
+    ]);
+    const out = await findCandidates(state);
+    expect(out.candidates.find((c) => c.id === "meera-fav")?.suggested_by).toEqual(["meera"]);
+    expect(out.candidates.find((c) => c.id === "p1")?.suggested_by).toEqual(["group", "asha"]);
+  });
+
+  it("excludes a place Qloo tags as non-vegetarian for a veg person", () => {
+    const meatOnly = place("m", 2, [{ id: "urn:tag:category:place:non_vegetarian_restaurant", name: "Non Vegetarian", type: undefined }]);
+    expect(toCandidate(meatOnly).vegFriendly).toBe(false);
+    expect(toCandidate(place("v", 2, [vegTag])).vegFriendly).toBe(true);
+    expect(toCandidate(place("u", 2)).vegFriendly).toBeUndefined();
   });
 });
 
@@ -196,7 +232,7 @@ describe("explainPick and assemblePlan", () => {
   async function rankedState() {
     const { state } = await resolvedState();
     chooseOption(state, { person_id: "ravi", taste: "Singer B", entity_id: "singer-b-full" });
-    await findCandidates(state, {});
+    await findCandidates(state);
     await rankGroup(state);
     return state;
   }

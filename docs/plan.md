@@ -13,7 +13,7 @@ Written Oct 22, 2026. Source of truth for requirements: `CLAUDE.md`. This file i
 | Framework | Next.js (App Router) + TypeScript | One repo for UI and server routes; `npm run build && npx tsc --noEmit` is the CLAUDE.md gate |
 | Hosting | Vercel (hobby) | Public URL in minutes, works in incognito, free until Nov 16 |
 | Agent | Anthropic TypeScript SDK (`@anthropic-ai/sdk`), Tool Runner (`client.beta.messages.toolRunner` + `betaZodTool`) | We define every tool, we host it; no extra agent framework to learn or justify |
-| Model | `claude-opus-5-5`, pinned. `output_config.effort: "medium"` set explicitly. Adaptive thinking (default, can't be disabled). Server-side refusal fallback on (`fallbacks: "default"`) | Default current model; $4/$20 per MTok. Only live runs spend tokens; samples are replays |
+| Model | `claude-sonnet-5-5`, pinned (`AGENT_MODEL`). `output_config.effort: "medium"` set explicitly. Adaptive thinking. Server-side refusal fallback on (`fallbacks: "default"`) | Switched from Opus 5.5 on 2026-10-22: in a measured run ~35% faster and ~60% cheaper ($2/$10 per MTok) with grounded reasons; the model only sequences tools and writes sentences. Only live runs spend tokens; samples are replays |
 | Model gotchas | No forced `tool_choice` (`any`/`tool` → 400): use `auto` + instructions + `strict: true` tools. Final plan via structured output, not prefill | From current API docs |
 | Validation | `zod` | Already needed by `betaZodTool`; also validates Qloo responses |
 | Cache + caps | Upstash Redis (free tier) in prod, in-memory/file in dev | Request-hash cache for Qloo, entity cache, session + daily caps across serverless instances |
@@ -57,7 +57,7 @@ Key rule: **the model never produces a number.** Scores and rankings come from Q
 | Tool | Does | Backed by |
 |---|---|---|
 | `resolve_entities(texts[], type_hint)` | Free text → Qloo entities; food terms → tags. Name-match guard: a top-1 whose name doesn't match the input is returned as unresolved, never used | `GET /search`, `GET /v2/tags` |
-| `get_recommendations(signals[], filter_type, location, constraints)` | Candidate pool from all group signals | `GET /v2/insights` with `filter.tags=urn:tag:category:place:restaurant`, `filter.price_level.min=1`, `filter.popularity.min=0.3`, `filter.location.query` |
+| `find_candidates` | Candidate pool: one call with all group signals (15) + each person's own top 3; fast food and takeaways dropped by Qloo tag | `GET /v2/insights` with `filter.tags=urn:tag:category:place:restaurant`, `filter.price_level.min=1`, `filter.popularity.min=0.3`, `filter.location.query` |
 | `score_for_person(person_id, candidate_ids[])` | Affinity of each candidate for one person + which of their inputs drove it | `GET /v2/insights` with that person's signals, `filter.results.entities=<pool>`, `feature.explainability=true` |
 | `rank_for_group(candidate_ids[])` | Applies constraints then maximin ranking; returns ranked list + per-person scores + who's lowest | `score.ts` (no API call) |
 | `explain(candidate_id, person_id)` | Evidence for a reason: the person's top contributing inputs (explainability) + place facts (tags, specialty dishes, ambience) | Cached insights response (no new call) |
@@ -171,5 +171,5 @@ Days are relative to the start date. Before then, only zero-cost prep.
 | Weak Bengaluru place coverage | Spike 4 picks the city; README says why |
 | No per-person affinity for an arbitrary candidate | Spike 3; fallback = one insights call per person over the candidate pool, use returned rank/score only, `null` when absent |
 | Rate limits | Cache everything, samples are replays, live caps |
-| Agent slow (Opus + several tool rounds) | Effort `medium`, parallel tool calls, stream steps; if still slow, measure `low` |
+| Agent slow (several tool rounds) | Effort `medium`, parallel tool calls, stream steps; if still slow, measure `low` |
 | Time (short build window) | Day 2 checkpoint cuts depth |
