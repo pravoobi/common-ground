@@ -26,3 +26,6 @@ next-env.d.ts
 # local-only
 CLAUDE.local.md
 qloo-hackathon-kit/
+
+# raw Qloo responses: never public (Qloo terms)
+.qloo-raw/

@@ -2,8 +2,7 @@
 
 Written Oct 22, 2026. Source of truth for requirements: `CLAUDE.md`. This file is the *how*.
 
-> **Unverified until spike 1:** every Qloo endpoint, parameter and response field below. They are placeholders
-> shaped by what Qloo's public docs looked like before; `SPIKES.md` wins as soon as it has real answers.
+> Qloo endpoints and fields below were verified in spikes 1–6 on 2026-10-22. `SPIKES.md` has the details and wins on conflict.
 
 ---
 
@@ -18,9 +17,9 @@ Written Oct 22, 2026. Source of truth for requirements: `CLAUDE.md`. This file i
 | Model gotchas | No forced `tool_choice` (`any`/`tool` → 400): use `auto` + instructions + `strict: true` tools. Final plan via structured output, not prefill | From current API docs |
 | Validation | `zod` | Already needed by `betaZodTool`; also validates Qloo responses |
 | Cache + caps | Upstash Redis (free tier) in prod, in-memory/file in dev | Request-hash cache for Qloo, entity cache, session + daily caps across serverless instances |
-| Replay store | Committed JSON in `data/runs/*.json` | Zero external calls on page load; reviewable in the repo |
+| Replay store | Recorded runs in Upstash Redis (private), seeded by `scripts/record.ts`; only group *inputs* are committed | Zero external calls to Qloo/model on page load. **Qloo terms forbid storing their response data in a public repo**, so runs and raw responses never go in git |
 | Styling | Tailwind | Fast mobile-first UI |
-| Tests | Vitest + recorded Qloo fixtures | Scoring, constraints, parsing, client — all offline |
+| Tests | Vitest + hand-written fixtures shaped like Qloo responses (fake ids/names) | Offline; no real Qloo data in the repo |
 | Licence | MIT, `LICENSE` at root | Required; set in GitHub About |
 
 Dependencies (each needs a one-line justification in its commit): `next react react-dom @anthropic-ai/sdk zod @upstash/redis @upstash/ratelimit tailwindcss vitest`.
@@ -37,7 +36,7 @@ Dependencies (each needs a one-line justification in its commit): `next react re
    │  /present          story page
    ▼
  Next.js server
-   ├─ GET  sample/run  → data/runs/<id>.json         (replay: no Qloo, no model)
+   ├─ GET  sample/run  → Redis run:<id>              (replay: no Qloo, no model)
    └─ POST /api/plan   → rate limit (session + daily) → Agent run, streamed as SSE steps
                              │
                 ┌────────────┴─────────────┐
@@ -57,11 +56,11 @@ Key rule: **the model never produces a number.** Scores and rankings come from Q
 
 | Tool | Does | Backed by |
 |---|---|---|
-| `resolve_entities(texts[], type_hint)` | Free text → Qloo entities with confidence; returns unresolved list | Qloo search / entity lookup |
-| `get_recommendations(signals[], filter_type, location, constraints)` | Candidate places/titles from group signals | Qloo insights |
-| `score_for_person(person_id, candidate_ids[])` | Affinity of each candidate for one person | Qloo insights with that person's signals (spike 3 decides shape) |
+| `resolve_entities(texts[], type_hint)` | Free text → Qloo entities; food terms → tags. Name-match guard: a top-1 whose name doesn't match the input is returned as unresolved, never used | `GET /search`, `GET /v2/tags` |
+| `get_recommendations(signals[], filter_type, location, constraints)` | Candidate pool from all group signals | `GET /v2/insights` with `filter.tags=urn:tag:category:place:restaurant`, `filter.price_level.min=1`, `filter.popularity.min=0.3`, `filter.location.query` |
+| `score_for_person(person_id, candidate_ids[])` | Affinity of each candidate for one person + which of their inputs drove it | `GET /v2/insights` with that person's signals, `filter.results.entities=<pool>`, `feature.explainability=true` |
 | `rank_for_group(candidate_ids[])` | Applies constraints then maximin ranking; returns ranked list + per-person scores + who's lowest | `score.ts` (no API call) |
-| `explain(candidate_id, person_id)` | Tags/attributes linking candidate to the person's tastes | Qloo entity tags / insights response |
+| `explain(candidate_id, person_id)` | Evidence for a reason: the person's top contributing inputs (explainability) + place facts (tags, specialty dishes, ambience) | Cached insights response (no new call) |
 
 The final answer is structured output (`Plan` schema below), validated with zod.
 
@@ -79,13 +78,14 @@ RunRecord   { id, group, plan, ranking, qlooCalls: TraceEntry[], tokens, cacheHi
 ### Group scoring (`lib/score.ts`)
 
 1. Drop candidates that break any person's hard constraint (veg, budget bucket, distance step, open at time).
-2. For each remaining candidate: `min` over people of affinity, tie-break on `mean`.
-3. A person with `affinity === null` for a candidate: candidate is flagged, not scored as zero or guessed. Ranked after fully-scored ones.
-4. v0 (`mean` only) is kept behind a flag so the v0 → v1 evidence is reproducible on the same group.
+2. Normalise each person's affinities to a percentile rank within the pool (Qloo affinities cluster in 0.87–0.94; see SPIKES.md §3). Raw affinity stays visible in the X-ray.
+3. For each remaining candidate: `min` over people of normalised score, tie-break on `mean`.
+4. A person with `affinity === null` for a candidate: candidate is flagged, not scored as zero or guessed. Ranked after fully-scored ones.
+5. v0 (`mean` only) is kept behind a flag so the v0 → v1 evidence is reproducible on the same group.
 
 ### Without-Qloo baseline
 
-Same model, same group text, no tools, same output schema. Generated once per sample by `scripts/baseline.ts`, stored in `data/runs/<id>.baseline.json`, labelled "Generated <date>, same model, no Qloo tools".
+Same model, same group text, no tools, same output schema. Generated once per sample by `scripts/baseline.ts`, stored in Redis next to the run, labelled "Generated <date>, same model, no Qloo tools".
 
 ### Replay pipeline
 
@@ -111,8 +111,7 @@ lib/
   agent/tools.ts          betaZodTool definitions
   score.ts constraints.ts explain.ts cache.ts ratelimit.ts types.ts
 data/
-  groups/*.json           sample group inputs (fictional people, labelled)
-  runs/*.json             recorded runs + baselines
+  groups/*.json           sample group inputs (fictional people, labelled); runs live in Redis
 scripts/                  record.ts, baseline.ts, spike-*.ts
 tests/                    score, constraints, resolve parsing, qloo client (fixtures/)
 docs/                     plan.md, progress.md, evidence.md
@@ -134,12 +133,12 @@ Days are relative to the start date. Before then, only zero-cost prep.
 
 ### Day 1 morning — Spikes (done when `SPIKES.md` sections 1–7 are filled and demo city chosen)
 - Clone `qloo-hackathon-kit` into a separate folder; read docs.qloo.com
-- `scripts/spike-*.ts` hitting the real API; save raw responses as test fixtures
+- `scripts/spike-*.mjs` hitting the real API; raw responses kept in gitignored `.qloo-raw/` ✅ done 2026-10-22
 - Rewrite §2 tool table and `lib/types.ts` to match reality
 
 ### Day 1 afternoon – Day 2 — Core path (minimum submittable)
 1. Scaffold Next.js, Tailwind, Vitest; deploy empty app to Vercel (live URL on day 1)
-2. `qloo/client.ts` + cache + fixtures tests
+2. `qloo/client.ts` + cache + tests on hand-written fixtures
 3. `score.ts` + `constraints.ts` + tests (v0 mean and v1 maximin)
 4. Agent with tools, restaurants in the demo city, structured `Plan` out
 5. `/api/plan` with caps; minimal `/new` page showing the plan
