@@ -20,3 +20,9 @@
 - **Next:** README (with the caveat), OG image, GIF; optional blind check with real people.
 - **Also shipped (later):** README rewritten per CLAUDE.md §7 (try-it box, problem, step table, mermaid architecture, Qloo feature map with code links, agent tools, fair-overlap example, evidence with the measurement caveat, cost, testing, run locally, security, limitations, business model, how it was built). OG image (`app/opengraph-image.tsx`, fictional tastes, no Qloo data) + `metadataBase`.
 - **Next:** README GIF from the live site on a phone; GitHub About (website + licence); blind check with real people if possible; Devpost text.
+
+## 2026-10-24: hardening and the story page
+
+- **Shipped:** per-IP cap (5/day) and daily cap 50; `Origin: null` now 403; session cookie must be a UUID; security headers; judging dates corrected to Nov 2–5. 77 tests.
+- **Shipped:** `/present`, five chapters (the deadlock, the tastes, the overlap, without vs with Qloo, the number) read from the recorded birthday sample and the three stored comparisons. The chat in chapter 1 is an invented scene and is labelled so.
+- **Next:** README GIF (recorded on a phone), Devpost submission (draft in `docs/devpost.md`), optional blind check, decision on purging old commit c140574.

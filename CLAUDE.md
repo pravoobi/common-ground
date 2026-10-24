@@ -128,7 +128,7 @@ README:
 - **Replay mode:** samples replay stored results; zero Qloo or model calls on page load.
 - **Outputs in context:** the plan shown as a group-chat card (WhatsApp-style message with the place, time, and one line per friend), with "Share to WhatsApp". Not a list of results.
 - **Localisation:** Indian cities, ₹ price levels, Indian music and film in the samples, veg/non-veg as a constraint.
-- **Story page:** `/present`, chapter by chapter: the group-chat deadlock, four tastes, the overlap, without vs. with Qloo, the number.
+- **Story page:** `/present` (built), chapter by chapter: the group-chat deadlock, four tastes, the overlap, without vs. with Qloo, the number.
 - **Share preview:** OG image for the live URL and repo.
 - **Test suite visible:** tests for group scoring, constraints, entity-resolution parsing and the Qloo client (recorded fixtures). Test count in the README, passing run screenshot in the gallery.
 - **README GIF:** recorded from the live site, looping, first thing on the page.

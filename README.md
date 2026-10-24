@@ -2,7 +2,7 @@
 
 > A generic AI guesses what your group might like; Common Ground knows what each of you loves and finds the plan where those tastes overlap.
 
-**[Live demo](https://common-ground-phi-bice.vercel.app/)** · [Sample group](https://common-ground-phi-bice.vercel.app/g/birthday-with-amma) · [Without-Qloo comparison](https://common-ground-phi-bice.vercel.app/g/couple-date-night#compare-heading) · [Make your own group](https://common-ground-phi-bice.vercel.app/new) · [How it's built](#how-its-built)
+**[Live demo](https://common-ground-phi-bice.vercel.app/)** · [Sample group](https://common-ground-phi-bice.vercel.app/g/birthday-with-amma) · [Without-Qloo comparison](https://common-ground-phi-bice.vercel.app/g/couple-date-night#compare-heading) · [Make your own group](https://common-ground-phi-bice.vercel.app/new) · [The story](https://common-ground-phi-bice.vercel.app/present) · [How it's built](#how-its-built)
 
 Built for the Qloo Agentic Hackathon. MIT licensed. No sign-up, no keys, nothing to install.
 

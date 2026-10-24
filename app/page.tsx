@@ -38,6 +38,11 @@ export default function Home() {
       >
         Plan for your own group
       </Link>
+      <p className="text-sm opacity-70">
+        <Link href="/present" className="underline">
+          Read the story in five short chapters
+        </Link>
+      </p>
       <p className="text-sm opacity-70">Powered by the Qloo taste graph and Claude.</p>
     </main>
   );
