@@ -120,7 +120,7 @@ More, with dates: [`docs/evidence.md`](docs/evidence.md) and [`SPIKES.md`](SPIKE
 
 - Samples are replays: zero Qloo or model calls per view.
 - Every Qloo response is cached by request hash for 7 days; identical requests with params in a different order share a key.
-- Live runs are capped per visitor (3/day) and globally (100/day) in Redis; refusals don't use up the budget.
+- Live runs are capped per browser (3/day), per IP address (5/day) and globally (50/day) in Redis; refusals don't use up the budget.
 - Qloo's limits are 50,000 calls a month and 10 a second; the client throttles to 10/s and retries 429s using `retry-after`.
 - Switching the model from Opus 5.5 to Sonnet 5.5 took a plan from 29–38 s and about $0.15 to 11–31 s and $0.05–0.10, with reasons still grounded.
 
@@ -143,7 +143,7 @@ npm run record -- college-friends                    # record a sample into Redi
 npm run baseline -- college-friends                  # its without-Qloo comparison
 ```
 
-Checks: `npm test` (74 tests on hand-written fixtures, no network), `npm run typecheck`, `npm run lint`, `npm run build`. `npm run test:live` makes a few real Qloo and Upstash calls.
+Checks: `npm test` (77 tests on hand-written fixtures, no network), `npm run typecheck`, `npm run lint`, `npm run build`. `npm run test:live` makes a few real Qloo and Upstash calls.
 
 ## Security and privacy
 

@@ -35,44 +35,62 @@ export function memoryCounter(): Counter {
 
 export interface CapLimits {
   perSession: number;
+  perIp: number;
   perDay: number;
 }
 
 export type CapResult =
   | { allowed: true; sessionLeft: number; dayLeft: number }
-  | { allowed: false; reason: "session" | "day" };
+  | { allowed: false; reason: "session" | "ip" | "day" };
 
 const DAY_SECONDS = 24 * 60 * 60;
 
 export function capLimitsFromEnv(env: Record<string, string | undefined> = process.env): CapLimits {
   const num = (v: string | undefined, fallback: number) => (Number(v) > 0 ? Number(v) : fallback);
-  return { perSession: num(env.LIVE_RUNS_PER_SESSION, 3), perDay: num(env.LIVE_RUNS_PER_DAY, 100) };
+  return {
+    perSession: num(env.LIVE_RUNS_PER_SESSION, 3),
+    perIp: num(env.LIVE_RUNS_PER_IP, 5),
+    perDay: num(env.LIVE_RUNS_PER_DAY, 50),
+  };
+}
+
+/** The cookie is only a convenience: anything that isn't one of our own UUIDs gets a fresh id. */
+export function cleanSessionId(value: string | undefined, fresh: () => string): string {
+  return value && /^[0-9a-f-]{36}$/i.test(value) ? value : fresh();
 }
 
 /**
- * Takes one live run from the session and global daily budgets, or refuses.
- * A refused run gives back what it took, so refusals don't use up the budget.
- * Samples are replays and never pass through here.
+ * Takes one live run from the daily, per-IP and per-session budgets, or refuses.
+ * The per-session cap is friendly accounting (a cookie can be dropped); the per-IP cap is what
+ * stops one client from using the whole day's budget. A refused run gives back what it took,
+ * so refusals don't use up any budget. Samples are replays and never pass through here.
  */
 export async function takeLiveRun(
   counter: Counter,
   sessionId: string,
   limits: CapLimits,
   now = new Date(),
+  ip?: string,
 ): Promise<CapResult> {
   const dayKey = `caps:day:${now.toISOString().slice(0, 10)}`;
-  const sessionKey = `caps:session:${sessionId}`;
+  const taken: string[] = [];
+  const take = async (key: string, limit: number) => {
+    const n = await counter.incr(key, DAY_SECONDS);
+    taken.push(key);
+    return { n, over: n > limit };
+  };
+  const refuse = async (reason: "session" | "ip" | "day"): Promise<CapResult> => {
+    for (const key of taken) await counter.decr(key);
+    return { allowed: false, reason };
+  };
 
-  const day = await counter.incr(dayKey, DAY_SECONDS);
-  if (day > limits.perDay) {
-    await counter.decr(dayKey);
-    return { allowed: false, reason: "day" };
+  const day = await take(dayKey, limits.perDay);
+  if (day.over) return refuse("day");
+  if (ip) {
+    const byIp = await take(`caps:ip:${now.toISOString().slice(0, 10)}:${ip}`, limits.perIp);
+    if (byIp.over) return refuse("ip");
   }
-  const session = await counter.incr(sessionKey, DAY_SECONDS);
-  if (session > limits.perSession) {
-    await counter.decr(sessionKey);
-    await counter.decr(dayKey);
-    return { allowed: false, reason: "session" };
-  }
-  return { allowed: true, sessionLeft: limits.perSession - session, dayLeft: limits.perDay - day };
+  const session = await take(`caps:session:${sessionId}`, limits.perSession);
+  if (session.over) return refuse("session");
+  return { allowed: true, sessionLeft: limits.perSession - session.n, dayLeft: limits.perDay - day.n };
 }

@@ -17,7 +17,7 @@ Project instructions for Claude Code. Read fully before any task. Architecture a
   - An **open-source licence file**, visible in the repo's About section.
   - A **text description** of features and what makes it "Qloo-powered".
   - **No video required.** Judges want something they can use. Judges may also judge from the text alone, so the description must stand on its own.
-  - Free, unrestricted testing access for sponsor and judges until judging ends (Nov 16). If anything needs a login, put credentials in the testing instructions.
+  - Free, unrestricted testing access for sponsor and judges until judging ends (Nov 5; the rules list judging as Nov 2–5). If anything needs a login, put credentials in the testing instructions.
   - New project, or an existing one significantly updated during the submission period with the updates explained. This entry is a new project.
 - **Judging criteria (from the official rules), and where each is proven.** Stage one is pass/fail: fits the theme and genuinely uses the Qloo API. Stage two scores four criteria equally; ties go by criterion order, then a judge vote.
 
@@ -36,7 +36,7 @@ Project instructions for Claude Code. Read fully before any task. Architecture a
   - [ ] Public repo with an OSI licence visible in About
   - [ ] Text description that stands alone (judges may not open the app)
   - [ ] Testing instructions (and credentials if any login exists; prefer none)
-  - [ ] Demo stays up and within API limits until Nov 16
+  - [ ] Demo stays up and within API limits until Nov 5 (leave it up to Nov 16 for margin)
 
 ### The one sentence
 
@@ -143,7 +143,7 @@ README:
 - Quantise inputs (distance in steps, price level buckets) so nearby requests reuse cache.
 - Gate the live "make your own group" flow with a session cap and a global daily cap; samples stay open.
 - Every external call: logged, errors caught, readable failure shown. One unresolved entity must not break the plan.
-- Record API limits from spike 1 in `SPIKES.md` and keep the live demo under them through Nov 16.
+- Record API limits from spike 1 in `SPIKES.md` and keep the live demo under them through Nov 5, and ideally Nov 16.
 
 ---
 
@@ -256,7 +256,7 @@ Keep counts consistent everywhere.
 ## 13. After submitting
 
 - Share the project (LinkedIn, X, the hackathon Discord), tagging Qloo.
-- Keep the live demo up and within API limits until Nov 16. Check it daily.
+- Keep the live demo up and within API limits until Nov 5 (leave it up to Nov 16 for margin). Check it daily.
 
 ---
 

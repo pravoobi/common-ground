@@ -102,7 +102,7 @@ The caveat, stated plainly: the yardstick is Qloo's own taste model and the pool
 
 **Fairness changes the pick.** In the birthday sample, averaging picks The 13th Floor and leaves Tanvi at her 52nd percentile; fairness picks SkyDeck by Sherlock's and lifts her to 57, at the cost of Sameer's favourite. The gap is modest, and we report it as measured.
 
-Also: 74 tests on hand-written fixtures, every reason checked against evidence ids, and a plan in 11–31 seconds for about $0.05–0.10 with 11–22 Qloo calls.
+Also: 77 tests on hand-written fixtures, every reason checked against evidence ids, and a plan in 11–31 seconds for about $0.05–0.10 with 11–22 Qloo calls.
 
 ## What we learned
 

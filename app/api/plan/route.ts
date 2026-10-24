@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { NextRequest } from "next/server";
 import { runAgent } from "@/lib/agent/run";
 import { getCache, getRedis } from "@/lib/cache";
-import { capLimitsFromEnv, memoryCounter, redisCounter, takeLiveRun, type Counter } from "@/lib/caps";
+import { capLimitsFromEnv, cleanSessionId, memoryCounter, redisCounter, takeLiveRun, type Counter } from "@/lib/caps";
 import { GroupInput } from "@/lib/group";
 
 // A live plan takes ~30–40 s (SPIKES.md §7); leave room for slow Qloo or model turns.
@@ -13,8 +13,7 @@ let devCounter: Counter | undefined;
 
 /** Live "make your own group" run: capped, streamed as server-sent events. Samples never come here. */
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (origin && new URL(origin).host !== request.nextUrl.host) return error(403, "Cross-site requests are not allowed.");
+  if (!sameOrigin(request)) return error(403, "Cross-site requests are not allowed.");
 
   const missing = ["ANTHROPIC_API_KEY", "QLOO_API_KEY", "QLOO_BASE_URL"].filter((k) => !process.env[k]);
   if (missing.length) {
@@ -25,16 +24,16 @@ export async function POST(request: NextRequest) {
   const parsed = GroupInput.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return error(400, `That group doesn't look right: ${parsed.error.issues[0]?.message ?? "invalid input"}.`);
 
-  const sessionId = request.cookies.get(SESSION_COOKIE)?.value ?? randomUUID();
+  const sessionId = cleanSessionId(request.cookies.get(SESSION_COOKIE)?.value, randomUUID);
   const redis = getRedis();
   const counter = redis ? redisCounter(redis) : (devCounter ??= memoryCounter());
-  const cap = await takeLiveRun(counter, sessionId, capLimitsFromEnv());
+  const cap = await takeLiveRun(counter, sessionId, capLimitsFromEnv(), new Date(), clientIp(request));
   const cookie = `${SESSION_COOKIE}=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${
     request.nextUrl.protocol === "https:" ? "; Secure" : ""
   }`;
   if (!cap.allowed) {
     const message =
-      cap.reason === "session"
+      cap.reason !== "day"
         ? "You've used your live plans for today. The sample groups are still open."
         : "The live planner has hit today's limit. Try a sample group, or come back tomorrow.";
     return error(429, message, { "set-cookie": cookie });
@@ -71,6 +70,23 @@ export async function POST(request: NextRequest) {
       "set-cookie": cookie,
     },
   });
+}
+
+/** Browsers send Origin on cross-site POSTs; "null" and unparseable values are refused too. */
+function sameOrigin(request: NextRequest): boolean {
+  const origin = request.headers.get("origin");
+  if (!origin) return true;
+  try {
+    return new URL(origin).host === request.nextUrl.host;
+  } catch {
+    return false;
+  }
+}
+
+/** Vercel sets x-forwarded-for from the real connection; the first entry is the client. */
+function clientIp(request: NextRequest): string | undefined {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return ip && ip.length <= 45 ? ip : undefined;
 }
 
 function error(status: number, message: string, headers: Record<string, string> = {}) {
