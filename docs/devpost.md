@@ -127,11 +127,12 @@ Qloo API (`/search`, `/v2/tags`, `/v2/insights` with `filter.results.entities` a
 
 - Live demo: https://common-ground-phi-bice.vercel.app/
 - Sample group: https://common-ground-phi-bice.vercel.app/g/birthday-with-amma
+- The story in five chapters: https://common-ground-phi-bice.vercel.app/present
 - Repo: https://github.com/pravoobi/common-ground
 
 ## Testing instructions
 
-No login, no keys. Open the live demo in any browser (incognito works). The three sample groups replay real recorded runs; scroll under a plan for the X-ray and the Without Qloo vs with Qloo comparison. `/new` runs the agent live (about 20–30 s, 3 runs per visitor per day). The demo stays up until judging ends.
+No login, no keys. Open the live demo in any browser (incognito works). `/present` is the five-chapter story, from the group chat to the numbers. The three sample groups replay real recorded runs; scroll under a plan for the X-ray and the Without Qloo vs with Qloo comparison. `/new` runs the agent live (about 20–30 s, 3 runs per visitor per day). The demo stays up until judging ends.
 
 ## Gallery (to upload)
 
