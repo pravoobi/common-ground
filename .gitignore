@@ -29,3 +29,7 @@ qloo-hackathon-kit/
 
 # raw Qloo responses: never public (Qloo terms)
 .qloo-raw/
+
+# Devpost gallery images (show recorded Qloo data)
+/gallery/
+/.vitest/
